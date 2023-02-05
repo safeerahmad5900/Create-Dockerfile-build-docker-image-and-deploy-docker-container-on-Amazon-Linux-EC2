@@ -5,7 +5,7 @@ provider "aws" {
 
 
 # Create VPC 
-data "aws_vpc" "default" {
+data "aws_vpc" "main" {
   default = true
 }
 
@@ -41,7 +41,7 @@ resource "aws_instance" "webapp" {
   ami           = data.aws_ami.latest_amazon_linux.id
   instance_type = lookup(var.type, var.env)
   key_name      = aws_key_pair.web_key.key_name
-  vpc_security_group_ids = [aws_security_group.sg_web.id]
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
 
   lifecycle {
     create_before_destroy = true
@@ -63,11 +63,11 @@ resource "aws_key_pair" "webappkey" {
 }
 
 
-# Security Group For ws1
+# Security Group For webapp
 resource "aws_security_group" "web_sg" {
   name        = "Webserver traffic Dockers/EC2"
   description = "Webserver traffic Dockers/EC2"
-  vpc_id      = data.aws_vpc.default.id
+  vpc_id      = data.aws_vpc.main.id
 
   ingress {
     description = "HTTP from everyone"
@@ -102,6 +102,7 @@ resource "aws_security_group" "web_sg" {
   )
 }
 
+# Repositry for Web App
 resource "aws_ecr_repository" "webapp" {
   name                 = "webapp"
   image_tag_mutability = "MUTABLE"
@@ -111,9 +112,9 @@ resource "aws_ecr_repository" "webapp" {
   }
 }
 
+# Repositry for my SQl
 
-
-resource "aws_ecr_repository" "mysql" {
+resource "aws_ecr_repository" "db_mysql" {
   name                 = "db_mysql"
   image_tag_mutability = "MUTABLE"
 
